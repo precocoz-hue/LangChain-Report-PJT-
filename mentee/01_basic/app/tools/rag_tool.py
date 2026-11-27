@@ -35,9 +35,10 @@ def make_rag_tool(pipeline,settings,question,category,meter):
                 query=' '.join(f'RPT-{i}' for i in sorted(original_ids))+' '+query
                 if len(query)>300:
                     raise ValueError()
-            # TODO B-09: pipeline.run에 question, query, effective_category, args.k, meter를 순서대로 전달하세요. check_tool_output으로 rag_search 반환값을 검사하세요.
-            raise ServiceError('NOT_IMPLEMENTED','B-09')
-            # END TODO B-09
+            # BEGIN B-09
+            result=pipeline.run(question,query,effective_category,args.k,meter)
+            result=check_tool_output('rag_search',result)
+            # END B-09
         except (ValidationError,ValueError):
             result={'status':'error','query':'invalid_input','answer':'invalid_input','sources':[]}
         except ServiceError as exc:
