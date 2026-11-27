@@ -73,9 +73,17 @@ class AgentService:
         middleware=[ToolCallLimitMiddleware(run_limit=self.settings.max_tool_calls,exit_behavior="error"),
                     ModelCallLimitMiddleware(run_limit=self.settings.max_model_calls,exit_behavior="error"),measure_model]
         try:
-            # TODO B-11: create_agent에 model, tools, system_prompt, middleware를 전달하고 response_format=ProviderStrategy(ModelAnswer)를 지정하세요. agent.invoke의 messages에 user question과 Category를 넣고 config recursion_limit을 유한하게 지정하세요.
-            raise ServiceError('NOT_IMPLEMENTED','B-11')
-            # END TODO B-11
+            # BEGIN B-11
+            # Provider-native 출력 형식을 지정한다. 별도 출력용 Tool을 등록하지 않는다.
+            agent = create_agent(
+                model=self.model_factory(), tools=tools,
+                system_prompt=SYSTEM+'\n권장 Context k='+str(self.settings.context_k),
+                middleware=middleware,
+                response_format=ProviderStrategy(ModelAnswer)
+            )
+            result=agent.invoke({'messages':[{'role':'user','content':question+'\n[검색 Category: '+str(category)+']'}]},
+                config={'recursion_limit':2*self.settings.max_model_calls+8})
+            # END B-11
         except ServiceError:
             raise
         except Exception as exc:
